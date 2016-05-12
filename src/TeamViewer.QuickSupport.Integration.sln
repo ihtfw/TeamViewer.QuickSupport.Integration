@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamViewer.QuickSupport.Integration", "TeamViewer.QuickSupport.Integration\TeamViewer.QuickSupport.Integration.csproj", "{045AFA80-DD2A-4FDF-B6A3-3B035DD14158}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamViewer.QuickSupport.Integration.Tests", "TeamViewer.QuickSupport.Integration.Tests\TeamViewer.QuickSupport.Integration.Tests.csproj", "{927E57BA-4DDB-4001-AE4C-E8792CA4DB90}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet", "NuGet\NuGet.csproj", "{3968CC75-B0EF-4AED-A0AE-0464E8CEF33F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{045AFA80-DD2A-4FDF-B6A3-3B035DD14158}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{045AFA80-DD2A-4FDF-B6A3-3B035DD14158}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{045AFA80-DD2A-4FDF-B6A3-3B035DD14158}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{045AFA80-DD2A-4FDF-B6A3-3B035DD14158}.Release|Any CPU.Build.0 = Release|Any CPU
+		{927E57BA-4DDB-4001-AE4C-E8792CA4DB90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{927E57BA-4DDB-4001-AE4C-E8792CA4DB90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{927E57BA-4DDB-4001-AE4C-E8792CA4DB90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{927E57BA-4DDB-4001-AE4C-E8792CA4DB90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3968CC75-B0EF-4AED-A0AE-0464E8CEF33F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3968CC75-B0EF-4AED-A0AE-0464E8CEF33F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3968CC75-B0EF-4AED-A0AE-0464E8CEF33F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3968CC75-B0EF-4AED-A0AE-0464E8CEF33F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

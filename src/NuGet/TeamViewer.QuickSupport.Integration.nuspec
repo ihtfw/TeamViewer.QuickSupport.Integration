@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>TeamViewer.QuickSupport.Integration</id>
+    <description>TeamViewer QuickSupport Integration for .net45 applications</description>
+    <projectUrl>https://github.com/ihtfw/TeamViewer.QuickSupport.Integration</projectUrl>
+    <licenseUrl>https://raw.githubusercontent.com/ihtfw/TeamViewer.QuickSupport.Integration/master/License.txt</licenseUrl>
+    <iconUrl>https://raw.githubusercontent.com/ihtfw/TeamViewer.QuickSupport.Integration/master/resources/icon.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <tags>TeamViewer QuickSupport</tags>
+    <dependencies>
+      <group>
+        <dependency id="TestStack.White" version="0.13.3" />
+        <dependency id="NLog" version="3.1.0" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
