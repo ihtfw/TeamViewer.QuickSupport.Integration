@@ -3,6 +3,7 @@
 namespace TeamViewer.QuickSupport.Integration.Tests
 {
     using System.Diagnostics;
+    using System.Linq;
 
     using NUnit.Framework;
 
@@ -12,7 +13,10 @@ namespace TeamViewer.QuickSupport.Integration.Tests
         [Test]
         public void GetInfoTest()
         {
-            var automator = new Automator();
+            var automator = new Automator
+                            {
+                                AlternativePathToTeamViewer = @"C:\ProgramData\TeamViewerQuickSupport\TeamViewerQS.exe"
+                            };
 
             var info = automator.GetInfo();
             Console.Out.WriteLine(info);

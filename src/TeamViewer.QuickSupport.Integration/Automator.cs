@@ -23,11 +23,25 @@ namespace TeamViewer.QuickSupport.Integration
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        Application app;
 
         public static Process GetRunningProcess()
         {
             return Process.GetProcessesByName("TeamViewer").FirstOrDefault();
+        }
+
+        public static Process WaitForProcess(TimeSpan timeout)
+        {
+            var start = DateTime.UtcNow;
+            while (DateTime.UtcNow - start < timeout)
+            {
+                var process = GetRunningProcess();
+                if (process != null)
+                    return process;
+
+                Thread.Sleep(200);
+            }
+
+            throw new TimeoutException("While waiting for TeamViewer process");
         }
 
         public string GetInstallationPath()
@@ -47,30 +61,31 @@ namespace TeamViewer.QuickSupport.Integration
 
         public AuthInfo GetInfo()
         {
-            var process = GetRunningProcess();
-            if (process == null)
+            var app = StartTeamViewer();
+
+            FindRepeat("Any window", () =>
             {
-                var path = GetInstallationPath();
-                if (path == null)
+                //if it was wrong teamviewer process
+                if (app.HasExited)
                 {
-                    if (string.IsNullOrEmpty(AlternativePathToTeamViewer))
+                    var process = WaitForProcess(TimeSpan.FromSeconds(30));
+                    if (process != null)
                     {
-                        throw new FileNotFoundException(Resources.TeamViewerNotFound);
+                        app = Application.Attach(process);
                     }
-                    if (!File.Exists(AlternativePathToTeamViewer))
-                    {
-                        throw new FileNotFoundException(Resources.QuickSupportModuleIsMissing);
-                    }
-                    path = AlternativePathToTeamViewer;
                 }
 
-                app = Application.Launch(new ProcessStartInfo(path));
-            }
-            else
-            {
-                app = Application.Attach(process);
-            }
-            
+                //if TeamViewer is in tray kill it and restart to show window
+                var window =  app.GetWindows().FirstOrDefault();
+                if (window == null && !app.HasExited)
+                {
+                    app.Kill();
+                    app = StartTeamViewer();
+                }
+
+                return window;
+            });
+
             var authInfo = FindRepeat("Auth info", () =>
             {
                 foreach (var window in app.GetWindows())
@@ -107,13 +122,43 @@ namespace TeamViewer.QuickSupport.Integration
             return authInfo;
         }
 
+        private Application StartTeamViewer()
+        {
+            var process = GetRunningProcess();
+            if (process != null)
+            {
+                return Application.Attach(process);
+            }
+
+            var path = GetInstallationPath();
+            if (path == null)
+            {
+                if (string.IsNullOrEmpty(AlternativePathToTeamViewer))
+                {
+                    throw new FileNotFoundException(Resources.TeamViewerNotFound);
+                }
+                if (!File.Exists(AlternativePathToTeamViewer))
+                {
+                    throw new FileNotFoundException(Resources.QuickSupportModuleIsMissing);
+                }
+                path = AlternativePathToTeamViewer;
+            }
+
+            Process.Start(new ProcessStartInfo(path)
+                          {
+                              Arguments = "--dre"
+                          });
+            process = WaitForProcess(TimeSpan.FromSeconds(30));
+            return Application.Attach(process);
+        }
+
         public static T FindRepeat<T>(string msg, Func<T> findFunc, TimeSpan? timeout = null) where T : class
         {
             if (!timeout.HasValue)
             {
                 timeout = TimeSpan.FromSeconds(30);
             }
-            
+
             var startTime = DateTime.Now;
             T res = null;
             while (DateTime.Now - startTime < timeout)
