@@ -57,6 +57,8 @@ namespace TeamViewer.QuickSupport.Integration
             return null;
         }
 
+        public bool AllowToKillTeamViewer { get; set; } = true;
+
         public string AlternativePathToTeamViewer { get; set; }
 
         public AuthInfo GetInfo()
@@ -77,7 +79,7 @@ namespace TeamViewer.QuickSupport.Integration
 
                 //if TeamViewer is in tray kill it and restart to show window
                 var window =  app.GetWindows().FirstOrDefault();
-                if (window == null && !app.HasExited)
+                if (AllowToKillTeamViewer && window == null && !app.HasExited)
                 {
                     app.Kill();
                     app = StartTeamViewer();
