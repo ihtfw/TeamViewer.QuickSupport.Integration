@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TeamViewer.QuickSupport.Integration
 {
@@ -17,7 +14,23 @@ namespace TeamViewer.QuickSupport.Integration
 
     using TestStack.White;
     using TestStack.White.UIItems;
-    using TestStack.White.UIItems.Finders;
+
+    static class Extensions
+    {
+        public static T GetByNameOrDefault<T>(this UIItemContainer itemContainer, string name, params string[] alternativeNames)
+            where T : IUIItem
+        {
+            return itemContainer.Items.OfType<T>()
+                .FirstOrDefault(p => p.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)
+                                     || alternativeNames.Any(an => an.Equals(p.Name, StringComparison.InvariantCultureIgnoreCase)));
+        }
+
+        public static T GetByIdOrDefault<T>(this UIItemContainer itemContainer, string id)
+            where T : IUIItem
+        {
+            return itemContainer.Items.OfType<T>().FirstOrDefault(p => p.Id == id);
+        }
+    }
 
     public class Automator
     {
@@ -93,7 +106,22 @@ namespace TeamViewer.QuickSupport.Integration
                 foreach (var window in app.GetWindows())
                 {
                     //20098 automation id for ID
-                    var id = window.Get<TextBox>(SearchCriteria.ByAutomationId("20098")).Text;
+                    var idTextBox = window.GetByNameOrDefault<TextBox>("ВАШ ID", "YOUR ID", "IL TUO ID")
+                                        ?? window.GetByIdOrDefault<TextBox>("20098");
+
+                    if (idTextBox == null)
+                    {
+                        var panel = window.GetByNameOrDefault<Panel>("Navigation");
+                        if (panel == null)
+                            continue;
+                        
+                        var button = panel.GetByNameOrDefault<Button>("Удалённое управление", "Remote Control", "Віддалене керування", "Controllo remoto") 
+                                           ?? panel.GetByIdOrDefault<Button>("2");
+                        button.Click();
+                        continue;
+                    }
+
+                    var id = idTextBox.Text;
                     if (string.IsNullOrEmpty(id))
                     {
                         continue;
@@ -105,7 +133,13 @@ namespace TeamViewer.QuickSupport.Integration
                     }
 
                     //20099 automation id for Password
-                    var pass = window.Get<TextBox>(SearchCriteria.ByAutomationId("20099")).Text;
+                    var passwordTextBox = window.GetByNameOrDefault<TextBox>("ПАРОЛЬ", "PASSWORD")
+                                            ?? window.GetByIdOrDefault<TextBox>("20099");
+                    if (passwordTextBox == null)
+                    {
+                        continue;
+                    }
+                    var pass = passwordTextBox.Text;
                     if (string.IsNullOrEmpty(pass))
                     {
                         continue;
@@ -119,7 +153,7 @@ namespace TeamViewer.QuickSupport.Integration
                 }
 
                 return null;
-            });
+            }, TimeSpan.FromSeconds(10));
 
             return authInfo;
         }
