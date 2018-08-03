@@ -38,7 +38,21 @@ catch (Exception ex)
 {
   //oops something goes wrong
 }
-  
+
+private static void UpdateQuickSupportInBackground(QuickSupportDownloader quickSupportDownloader)
+{
+    Task.Factory.StartNew(() =>
+     {
+         try
+         {
+             quickSupportDownloader.Update();
+         }
+         catch (Exception updateEx)
+         {
+             Debug.WriteLine("Failed to update QuickSupport: " + updateEx);
+         }
+     });
+}
 ```
 
 ##Check if TeamViewer is running:
