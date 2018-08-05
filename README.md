@@ -3,7 +3,7 @@ TeamViewer QuickSupport Integration for .net applications.
 <a href="https://www.nuget.org/packages/TeamViewer.QuickSupport.Integration/">Nuget Package</a>
 
 
-##Sample use:
+## Sample use:
 ### Code configuration
 ```csharp
 try
@@ -55,7 +55,7 @@ private static void UpdateQuickSupportInBackground(QuickSupportDownloader quickS
 }
 ```
 
-##Check if TeamViewer is running:
+## Check if TeamViewer is running:
 ### Code configuration
 ```csharp
 var process = Automator.GetRunningProcess();
