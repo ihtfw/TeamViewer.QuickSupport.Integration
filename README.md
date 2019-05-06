@@ -69,6 +69,11 @@ else
 }
 ```
 
+## Known problems
+### Exception at --> automator.GetInfo();
+Usually, it's occurs when TeamViewer is running as admin, and your app is running as user.
+
+More information in [Issue](https://github.com/ihtfw/TeamViewer.QuickSupport.Integration/issues/1)
 
 
 
