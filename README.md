@@ -1,4 +1,4 @@
-# TeamViewer.QuickSupport.Integration
+# New Document# TeamViewer.QuickSupport.Integration
 TeamViewer QuickSupport Integration for .net applications.
 <a href="https://www.nuget.org/packages/TeamViewer.QuickSupport.Integration/">Nuget Package</a>
 
@@ -15,7 +15,7 @@ try
         var quickSupportDownloader = new TeamViewer.QuickSupport.Integration.QuickSupportDownloader();
         //you can specify alternative path to QuickSupport
         //quickSupportDownloader.DownloadUrl = @"http://yourdomain.com/somepath/TeamViewerQS.exe"
-        
+
         var isQuickSupportDownloaded = System.IO.File.Exists(quickSupportDownloader.DownloadPath);
         if (!isQuickSupportDownloaded)
         {
@@ -32,7 +32,7 @@ try
     }
     var info = automator.GetInfo();
     //success
-    //info.ID and info.Password    
+    //info.ID and info.Password
 }
 catch (Exception ex)
 {
@@ -77,3 +77,15 @@ More information in [Issue](https://github.com/ihtfw/TeamViewer.QuickSupport.Int
 
 
 
+### Running within a Windows Service
+When a service is running under the system group it is assigned a Session ID of 0. When running under Session ID 0, services cannot interact with the user's desktop or display windows in their current session. This prevents the library from launching Team Viewer and TestStack.White from reading Team Viewer's form info.
+
+The best way around this is to use [this](https://www.codeproject.com/Articles/35773/Subverting-Vista-UAC-in-Both-and-bit-Archite) example to launch a small exe that runs the example above and uses named pipes to pass the info back to the service.
+
+The main file needed is [ApplicationLoader.cs](/Examples/ApplicationLoader.cs) and using it looks like this:
+
+```csharp
+// spawns a child process in the current logged in user's context to bypass Windows Service restrictions
+// on interacting with the desktop
+bool didApplicationStart = ApplicationLoader.StartProcessAndBypassUAC(pathToExe, out ApplicationLoader.PROCESS_INFORMATION procInfo);
+```
