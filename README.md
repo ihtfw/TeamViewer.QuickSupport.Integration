@@ -1,7 +1,6 @@
-# New Document# TeamViewer.QuickSupport.Integration
+# TeamViewer.QuickSupport.Integration
 TeamViewer QuickSupport Integration for .net applications.
 <a href="https://www.nuget.org/packages/TeamViewer.QuickSupport.Integration/">Nuget Package</a>
-
 
 ## Sample use:
 ### Code configuration
