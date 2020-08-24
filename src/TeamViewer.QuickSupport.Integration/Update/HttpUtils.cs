@@ -1,9 +1,9 @@
-﻿namespace TeamViewer.QuickSupport.Integration
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 
+namespace TeamViewer.QuickSupport.Integration.Update
+{
     class HttpUtils
     {
         private ProxySettings proxySettings;

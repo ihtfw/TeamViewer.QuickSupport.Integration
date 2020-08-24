@@ -1,62 +1,24 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
+using FlaUI.Core;
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Definitions;
+using FlaUI.UIA3;
+using TeamViewer.QuickSupport.Integration.Exceptions;
 
 namespace TeamViewer.QuickSupport.Integration
 {
     using System.Diagnostics;
     using System.IO;
-    using System.Management.Instrumentation;
-    using System.Threading;
-
-    using NLog;
-
-    using TeamViewer.QuickSupport.Integration.Properties;
-
-    using TestStack.White;
-    using TestStack.White.UIItems;
-
-    static class Extensions
-    {
-        public static T GetByNameOrDefault<T>(this UIItemContainer itemContainer, string name, params string[] alternativeNames)
-            where T : IUIItem
-        {
-            return itemContainer.Items.OfType<T>()
-                .FirstOrDefault(p => p.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)
-                                     || alternativeNames.Any(an => an.Equals(p.Name, StringComparison.InvariantCultureIgnoreCase)));
-        }
-
-        public static T GetByIdOrDefault<T>(this UIItemContainer itemContainer, string id)
-            where T : IUIItem
-        {
-            return itemContainer.Items.OfType<T>().FirstOrDefault(p => p.Id == id);
-        }
-    }
 
     public class Automator
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-
         public static Process GetRunningProcess()
         {
             return Process.GetProcessesByName("TeamViewer").FirstOrDefault();
         }
-
-        public static Process WaitForProcess(TimeSpan timeout)
-        {
-            var start = DateTime.UtcNow;
-            while (DateTime.UtcNow - start < timeout)
-            {
-                var process = GetRunningProcess();
-                if (process != null)
-                    return process;
-
-                Thread.Sleep(200);
-            }
-
-            throw new TimeoutException("While waiting for TeamViewer process");
-        }
-
+        
         public string GetInstallationPath()
         {
             var x86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
@@ -77,85 +39,133 @@ namespace TeamViewer.QuickSupport.Integration
         public AuthInfo GetInfo()
         {
             var app = StartTeamViewer();
+            using var automation = new UIA3Automation();
 
-            FindRepeat("Any window", () =>
+            var topLevelWindows = app.GetAllTopLevelWindows(automation);
+            if (AllowToKillTeamViewer && !topLevelWindows.Any() && !app.HasExited)
             {
-                //if it was wrong teamviewer process
-                if (app.HasExited)
+                app.Kill();
+                app = StartTeamViewer();
+
+                for (int i = 0; i < 10; i++)
                 {
-                    var process = WaitForProcess(TimeSpan.FromSeconds(30));
-                    if (process != null)
+                    Thread.Sleep(1000);
+                    topLevelWindows = app.GetAllTopLevelWindows(automation);
+                    if (topLevelWindows.Any())
                     {
-                        app = Application.Attach(process);
+                        break;
                     }
                 }
+            }
 
-                //if TeamViewer is in tray kill it and restart to show window
-                var window =  app.GetWindows().FirstOrDefault();
-                if (AllowToKillTeamViewer && window == null && !app.HasExited)
-                {
-                    app.Kill();
-                    app = StartTeamViewer();
-                }
-
-                return window;
-            });
-
-            var authInfo = FindRepeat("Auth info", () =>
+            if (!topLevelWindows.Any())
             {
-                foreach (var window in app.GetWindows())
-                {
-                    //20098 automation id for ID
-                    var idTextBox = window.GetByNameOrDefault<TextBox>("ВАШ ID", "YOUR ID", "IL TUO ID")
-                                        ?? window.GetByIdOrDefault<TextBox>("20098");
+                throw new AutomatorException("Failed to get main window");
+            }
 
+            foreach (var window in topLevelWindows)
+            {
+                //20098 automation id for ID
+                var idTextBox = GetIDTextBox(window);
+
+                if (idTextBox == null)
+                {
+                    var panel = window.GetByNameOrDefault("Navigation");
+                    if (panel == null)
+                        continue;
+                        
+                    var button = panel.GetByNameOrDefault("Удалённое управление", "Удаленное управление", "Remote Control", "Віддалене керування", "Controllo remoto")
+                                 ?? panel.GetByIdOrDefault("2");
+                    if (button == null)
+                    {
+                        continue;
+                    }
+                    button.Click();
+
+                    idTextBox = GetIDTextBox(window);
                     if (idTextBox == null)
                     {
-                        var panel = window.GetByNameOrDefault<Panel>("Navigation");
-                        if (panel == null)
-                            continue;
-                        
-                        var button = panel.GetByNameOrDefault<Button>("Удалённое управление", "Remote Control", "Віддалене керування", "Controllo remoto") 
-                                           ?? panel.GetByIdOrDefault<Button>("2");
-                        button.Click();
-                        continue;
+                        throw new AutomatorException("Failed to find TextBox with ID");
                     }
-
-                    var id = idTextBox.Text;
-                    if (string.IsNullOrEmpty(id))
-                    {
-                        continue;
-                    }
-                    id = id.Replace(" ", "");
-                    if (id == "-")
-                    {
-                        return null;
-                    }
-
-                    //20099 automation id for Password
-                    var passwordTextBox = window.GetByNameOrDefault<TextBox>("ПАРОЛЬ", "PASSWORD")
-                                            ?? window.GetByIdOrDefault<TextBox>("20099");
-                    if (passwordTextBox == null)
-                    {
-                        continue;
-                    }
-                    var pass = passwordTextBox.Text;
-                    if (string.IsNullOrEmpty(pass))
-                    {
-                        continue;
-                    }
-                    if (pass == "-")
-                    {
-                        return null;
-                    }
-
-                    return new AuthInfo(id, pass);
                 }
 
-                return null;
-            }, TimeSpan.FromSeconds(10));
+                var id = idTextBox.Text;
+                if (string.IsNullOrEmpty(id))
+                {
+                    continue;
+                }
+                id = id.Replace(" ", "");
+                if (id == "-")
+                {
+                    return null;
+                }
 
-            return authInfo;
+                //20099 automation id for Password
+                var passwordTextBox = GetPasswordTextBox(window);
+                if (passwordTextBox == null)
+                {
+                    continue;
+                }
+
+                var pass = passwordTextBox.Text;
+                if (string.IsNullOrEmpty(pass))
+                {
+                    continue;
+                }
+                if (pass == "-")
+                {
+                    return null;
+                }
+
+                return new AuthInfo(id, pass);
+            }
+
+            return null;
+        }
+
+        private TextBox GetPasswordTextBox(Window window)
+        {
+            var names = new[] { "ПАРОЛЬ", "PASSWORD" };
+            var descendants = window.FindAllDescendants(f => f.ByControlType(ControlType.Edit));
+            foreach (var descendant in descendants.Where(d => !string.IsNullOrEmpty(d.Name)))
+            {
+                if (names.Contains(descendant.Name.ToUpper()))
+                {
+                    return descendant.AsTextBox();
+                }
+            }
+
+            foreach (var descendant in descendants.Where(d => !string.IsNullOrEmpty(d.AutomationId)))
+            {
+                if (descendant.AutomationId == "20099")
+                {
+                    return descendant.AsTextBox();
+                }
+            }
+
+            return null;
+        }
+        private TextBox GetIDTextBox(Window window)
+        {
+            var names = new[] {"ВАШ ID", "YOUR ID", "IL TUO ID"};
+            var descendants = window.FindAllDescendants(f => f.ByControlType(ControlType.Edit));
+            foreach (var descendant in descendants.Where(d => !string.IsNullOrEmpty(d.Name)))
+            {
+                if (names.Contains(descendant.Name.ToUpper()))
+                {
+                    return descendant.AsTextBox();
+                }
+            }
+            
+            foreach (var descendant in descendants.Where(d => !string.IsNullOrEmpty(d.AutomationId)))
+            {
+                if (descendant.AutomationId == "20098")
+                {
+                    return descendant.AsTextBox();
+                }
+            }
+
+            return null;
         }
 
         private Application StartTeamViewer()
@@ -171,57 +181,19 @@ namespace TeamViewer.QuickSupport.Integration
             {
                 if (string.IsNullOrEmpty(AlternativePathToTeamViewer))
                 {
-                    throw new FileNotFoundException(Resources.TeamViewerNotFound);
+                    throw new FileNotFoundException("TeamViewer is not installed and no path for QuickSupport module is provided");
                 }
                 if (!File.Exists(AlternativePathToTeamViewer))
                 {
-                    throw new FileNotFoundException(Resources.QuickSupportModuleIsMissing);
+                    throw new FileNotFoundException("QuickSupport module not found");
                 }
                 path = AlternativePathToTeamViewer;
             }
 
-            Process.Start(new ProcessStartInfo(path)
-                          {
-                              Arguments = "--dre"
-                          });
-            process = WaitForProcess(TimeSpan.FromSeconds(30));
-            return Application.Attach(process);
-        }
-
-        public static T FindRepeat<T>(string msg, Func<T> findFunc, TimeSpan? timeout = null) where T : class
-        {
-            if (!timeout.HasValue)
+            return Application.Launch(new ProcessStartInfo(path)
             {
-                timeout = TimeSpan.FromSeconds(30);
-            }
-
-            var startTime = DateTime.Now;
-            T res = null;
-            while (DateTime.Now - startTime < timeout)
-            {
-                try
-                {
-                    res = findFunc();
-                    if (res != null)
-                    {
-                        break;
-                    }
-                }
-                catch (ApplicationException)
-                {
-                    throw;
-                }
-                catch (Exception e)
-                {
-                    Logger.Error(msg + "\n" + e);
-                }
-                Thread.Sleep(300);
-            }
-            if (res == null)
-            {
-                throw new InstanceNotFoundException(msg);
-            }
-            return res;
+                Arguments = "--dre"
+            });
         }
     }
 }

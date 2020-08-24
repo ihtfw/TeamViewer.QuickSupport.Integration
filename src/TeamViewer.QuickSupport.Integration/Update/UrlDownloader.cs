@@ -1,9 +1,8 @@
-﻿namespace TeamViewer.QuickSupport.Integration
-{
-    using System;
-    using System.IO;
-    using System.Threading.Tasks;
+﻿using System;
+using System.IO;
 
+namespace TeamViewer.QuickSupport.Integration.Update
+{
     class UrlDownloader
     {
         private readonly string localCacheDir;

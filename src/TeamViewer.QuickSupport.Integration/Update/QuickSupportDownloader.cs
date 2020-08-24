@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
-namespace TeamViewer.QuickSupport.Integration
+namespace TeamViewer.QuickSupport.Integration.Update
 {
-    using System.IO;
-
     public class QuickSupportDownloader
     {
         private string downloadPath;

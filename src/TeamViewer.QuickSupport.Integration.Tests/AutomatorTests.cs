@@ -2,9 +2,6 @@
 
 namespace TeamViewer.QuickSupport.Integration.Tests
 {
-    using System.Diagnostics;
-    using System.Linq;
-
     using NUnit.Framework;
 
     [TestFixture]

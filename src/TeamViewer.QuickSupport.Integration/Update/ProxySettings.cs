@@ -1,4 +1,4 @@
-﻿namespace TeamViewer.QuickSupport.Integration
+﻿namespace TeamViewer.QuickSupport.Integration.Update
 {
     public class ProxySettings
     {
