@@ -8,6 +8,7 @@
             Password = password;
         }
 
+        // ReSharper disable once InconsistentNaming
         public string ID { get; private set; }
 
         public string Password { get; private set; }

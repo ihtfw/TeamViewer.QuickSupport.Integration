@@ -21,12 +21,16 @@ namespace TeamViewer.QuickSupport.Integration
         
         public string GetInstallationPath()
         {
-            var x86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-            var path = Path.Combine(x86, "TeamViewer\\TeamViewer.exe");
-
-            if (File.Exists(path))
+            var x86Path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "TeamViewer\\TeamViewer.exe");
+            if (File.Exists(x86Path))
             {
-                return path;
+                return x86Path;
+            }
+
+            var x64Path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "TeamViewer\\TeamViewer.exe");
+            if (File.Exists(x64Path))
+            {
+                return x64Path;
             }
 
             return null;
@@ -47,7 +51,7 @@ namespace TeamViewer.QuickSupport.Integration
                 app.Kill();
                 app = StartTeamViewer();
 
-                for (int i = 0; i < 10; i++)
+                for (var i = 0; i < 10; i++)
                 {
                     Thread.Sleep(1000);
                     topLevelWindows = app.GetAllTopLevelWindows(automation);

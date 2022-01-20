@@ -1,20 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <LangVersion>latest</LangVersion>
-    <Authors>ihtfw</Authors>
-    <Description>TeamViewer QuickSupport Integration for .net applications</Description>
-    <RepositoryUrl>https://github.com/ihtfw/TeamViewer.QuickSupport.Integration</RepositoryUrl>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2008.24.1</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0</TargetFrameworks>
+		<LangVersion>latest</LangVersion>
+		<Authors>ihtfw</Authors>
+		<Description>TeamViewer QuickSupport Integration for .net applications</Description>
+		<RepositoryUrl>https://github.com/ihtfw/TeamViewer.QuickSupport.Integration</RepositoryUrl>
+		<Version>2008.24.1</Version>
+		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+		<FileVersion>1.0.0.0</FileVersion>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="FlaUI.UIA3" Version="3.2.0" />
-  </ItemGroup>
+	<!-- Documentation and package only in release -->
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FlaUI.UIA3" Version="3.2.0" />
+	</ItemGroup>
 
 </Project>

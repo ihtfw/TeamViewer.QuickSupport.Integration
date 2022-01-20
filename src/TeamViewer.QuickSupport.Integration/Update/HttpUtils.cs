@@ -6,9 +6,11 @@ namespace TeamViewer.QuickSupport.Integration.Update
 {
     class HttpUtils
     {
-        private ProxySettings proxySettings;
+        private ProxySettings _proxySettings;
 
-        public ProxySettings ProxySettings { get { return proxySettings ?? (proxySettings = new ProxySettings()); } set { proxySettings = value; } }
+        public ProxySettings ProxySettings { get => _proxySettings ??= new ProxySettings();
+            set => _proxySettings = value;
+        }
 
         /// <summary>
         /// 
@@ -30,8 +32,7 @@ namespace TeamViewer.QuickSupport.Integration.Update
         public string GetEtagHttpResponse(Uri uri)
         {
             var headers = GetHttpResponseHeaders(uri);
-            string etag;
-            if (headers.TryGetValue("ETag", out etag))
+            if (headers.TryGetValue("ETag", out var etag))
             {
                 return etag;
             }
@@ -68,12 +69,10 @@ namespace TeamViewer.QuickSupport.Integration.Update
                 webRequest.Proxy = webProxy;
             }
             webRequest.Method = "HEAD";
-            using (WebResponse webResponse = webRequest.GetResponse())
+            using var webResponse = webRequest.GetResponse();
+            foreach (string header in webResponse.Headers)
             {
-                foreach (string header in webResponse.Headers)
-                {
-                    headers.Add(header, webResponse.Headers[header]);
-                }
+                headers.Add(header, webResponse.Headers[header]);
             }
 
             return headers;
@@ -81,17 +80,15 @@ namespace TeamViewer.QuickSupport.Integration.Update
 
         public void DownloadFile(string url, string fileName)
         {
-            using (var client = new WebClient())
+            using var client = new WebClient();
+            if (ProxySettings.Use)
             {
-                if (ProxySettings.Use)
-                {
-                    var webProxy = new WebProxy(ProxySettings.Address, true);
-                    var cred = new NetworkCredential(ProxySettings.Login, ProxySettings.Password);
-                    webProxy.Credentials = cred;
-                    client.Proxy = webProxy;
-                }
-                client.DownloadFile(url, fileName);
+                var webProxy = new WebProxy(ProxySettings.Address, true);
+                var cred = new NetworkCredential(ProxySettings.Login, ProxySettings.Password);
+                webProxy.Credentials = cred;
+                client.Proxy = webProxy;
             }
+            client.DownloadFile(url, fileName);
         }
 
     }

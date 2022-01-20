@@ -5,7 +5,7 @@ namespace TeamViewer.QuickSupport.Integration.Update
 {
     public class QuickSupportDownloader
     {
-        private string downloadPath;
+        private string _downloadPath;
 
         public ProxySettings ProxySettings { get; set; }
         
@@ -15,23 +15,25 @@ namespace TeamViewer.QuickSupport.Integration.Update
         {
             get
             {
-                if (string.IsNullOrEmpty(downloadPath))
+                if (string.IsNullOrEmpty(_downloadPath))
                 {
-                    downloadPath = GetDefaultDownloadPath();
+                    _downloadPath = GetDefaultDownloadPath();
                 }
-                return downloadPath;
+                return _downloadPath;
             }
-            set
-            {
-                downloadPath = value;
-            }
+            set => _downloadPath = value;
         }
 
         public void Update()
         {
-            var urlDownloader = new UrlDownloader(Path.GetDirectoryName(DownloadPath), Path.GetFileName(DownloadPath), DownloadUrl);
-            urlDownloader.HttpUtils.ProxySettings = ProxySettings;
-            urlDownloader.Update();
+            var downloader = new UrlDownloader(Path.GetDirectoryName(DownloadPath), Path.GetFileName(DownloadPath), DownloadUrl)
+                {
+                    HttpUtils =
+                    {
+                        ProxySettings = ProxySettings
+                    }
+                };
+            downloader.Update();
         }
 
         public string GetDefaultDownloadPath()
